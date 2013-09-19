@@ -11,6 +11,32 @@ public class DiamondSquare : MonoBehaviour {
         doTheDiamond(1);
 	}
 
+    private bool checkIfArraysEqual(Point[] a1, Point[] a2)
+    {        
+        foreach (Point p in a1)
+        {
+            bool each = false;
+            foreach (Point o in a2)
+            {
+                if (p.Equals(o))
+                {
+                    each = true;
+                    break;
+                }
+            }
+            if (!each)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private bool pointInRange(Point p)
+    {
+        return p.X >= 0 && p.X < size && p.Y >= 0 && p.Y < size;
+    }
+
     private void doTheDiamond(int power)
     {
         size = (int)Mathf.Pow(2, power) + 1;
@@ -28,14 +54,48 @@ public class DiamondSquare : MonoBehaviour {
         List<Point[]> diamonds = new List<Point[]>();
         for (int i = 0; i <= power; i++)
         {
+            int w = (int)(size / Mathf.Pow(2, i));
+
+            diamonds = new List<Point[]>();
             // Do the diamond step for each square
             foreach (Point[] square in squares)
             {
                 Point center = diamondStep(square, variation);
+                int x = center.X;
+                int y = center.Y;
                 // Generate four diamonds from this center
+                Point[] d1 = new Point[] {
+                    center, 
+                    new Point(mod(x - w/2, size), mod(y - w/2, size)),
+                    new Point(mod(x ,size), mod(y - w, size)),
+                    new Point(mod(x + w/2, size), mod(y - w/2, size))
+                };
+                Point[] d2 = new Point[] {
+                    center, 
+                    new Point(mod(x + w/2, size), mod(y - w/2, size)),
+                    new Point(mod(x + w, size), mod(y ,size)),
+                    new Point(mod(x + w/2, size), mod(y + w/2, size))                   
+                };
+                Point[] d3 = new Point[] {
+                    center, 
+                    new Point(mod(x + w/2, size), mod(y + w/2, size)),
+                    new Point(mod(x, size), mod(y + w, size)),
+                    new Point(mod(x - w/2, size), mod(y + w/2, size))                                     
+                };
+                Point[] d4 = new Point[] {
+                    center, 
+                    new Point(mod(x - w/2, size), mod(y + w/2, size)),
+                    new Point(mod(x - w, size), mod(y, size)),
+                    new Point(mod(x - w/2, size), mod(y - w/2, size))
+                };
                 
+                diamonds.Add(d1);
+                diamonds.Add(d2);
+                diamonds.Add(d3);
+                diamonds.Add(d4);
             }
 
+            squares = new List<Point[]>();
             // Do the square step for each diamond
             foreach (Point[] diamond in diamonds)
             {
@@ -111,6 +171,11 @@ public class DiamondSquare : MonoBehaviour {
         return new Point(cx, cy);
     }
 
+    int mod(int x, int m)
+    {
+        return (x % m + m) % m;
+    }
+
     private Point squareStep(Point[] square, float variation)
     {
         float val = 0f;
@@ -119,6 +184,7 @@ public class DiamondSquare : MonoBehaviour {
             topMost = new Point(), bottomMost = new Point();
         foreach (Point corner in square)
         {
+            print(string.Format("X: {0}, Y: {1}", corner.X, corner.Y));
             val += grid[corner.X, corner.Y];
             if (corner.X < left)
             {
